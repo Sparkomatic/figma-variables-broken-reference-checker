@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #ffffff;
+      color: #333;
+      line-height: 1.5;
+    }
+
+    .container {
+      padding: 20px;
+      max-width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .status {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-weight: 500;
+      text-align: center;
+    }
+
+    .status.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .status.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .status.loading {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    .results-container {
+      flex: 1;
+      overflow-y: auto;
+      border: 1px solid #e1e5e9;
+      border-radius: 8px;
+      background: #f8f9fa;
+    }
+
+    .section {
+      margin-bottom: 16px;
+      background: white;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .section-header {
+      padding: 12px 16px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e1e5e9;
+      font-weight: 600;
+      color: #495057;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-count {
+      background: #6c757d;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .section-count.primitive {
+      background: #007bff;
+    }
+
+    .section-count.semantic {
+      background: #28a745;
+    }
+
+    .section-count.component {
+      background: #fd7e14;
+    }
+
+    .section-content {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .reference-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid #f1f3f4;
+      transition: background-color 0.2s;
+    }
+
+    .reference-item:hover {
+      background: #f8f9fa;
+    }
+
+    .reference-item:last-child {
+      border-bottom: none;
+    }
+
+    .variable-name {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+      font-size: 13px;
+    }
+
+    .error-message {
+      color: #dc3545;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .broken-reference {
+      color: #6c757d;
+      font-size: 12px;
+      font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    }
+
+    .theme-info {
+      color: #17a2b8;
+      font-size: 12px;
+      font-weight: 500;
+      margin-top: 2px;
+    }
+
+    .empty-section {
+      padding: 20px;
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #007bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .footer {
+      margin-top: 16px;
+      padding: 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 12px;
+      color: #6c757d;
+    }
+
+    .retry-button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-top: 12px;
+      transition: background-color 0.2s;
+    }
+
+    .retry-button:hover {
+      background: #0056b3;
+    }
+
+    .retry-button:disabled {
+      background: #6c757d;
+      cursor: not-allowed;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">Figma Variables Broken Reference Checker</div>
+      <div class="subtitle">Scans for broken references in your design tokens</div>
+    </div>
+
+    <div id="status" class="status loading">
+      <span class="loading-spinner"></span>
+      Scanning variables...
+    </div>
+
+    <div id="results" class="results-container" style="display: none;">
+      <!-- Results will be populated here -->
+    </div>
+
+    <div class="footer">
+      <button id="retryButton" class="retry-button" onclick="retryScan()">Scan Again</button>
+    </div>
+  </div>
+
+  <script>
+    let isScanning = false;
+
+    function updateStatus(message, type) {
+      const statusEl = document.getElementById('status');
+      statusEl.className = `status ${type}`;
+      statusEl.innerHTML = type === 'loading' 
+        ? `<span class="loading-spinner"></span>${message}`
+        : message;
+    }
+
+    function createSection(type, title, references) {
+      const section = document.createElement('div');
+      section.className = 'section';
+      
+      const count = references.length;
+      const countClass = count > 0 ? type : 'empty';
+      
+      section.innerHTML = `
+        <div class="section-header">
+          <span>${title}</span>
+          <span class="section-count ${countClass}">${count}</span>
+        </div>
+        <div class="section-content">
+          ${count === 0 
+            ? `<div class="empty-section">No broken references found</div>`
+            : references.map(ref => `
+                <div class="reference-item">
+                  <div class="variable-name">${escapeHtml(ref.variableName)}</div>
+                  <div class="error-message">${escapeHtml(ref.error)}</div>
+                  <div class="broken-reference">Broken reference: ${escapeHtml(ref.referencedVariableName)} (ID: ${escapeHtml(ref.brokenReference)})</div>
+                  <div class="theme-info">Theme: ${escapeHtml(ref.themeName)}</div>
+                </div>
+              `).join('')
+          }
+        </div>
+      `;
+      
+      return section;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function displayResults(brokenRefs) {
+      const resultsContainer = document.getElementById('results');
+      const statusEl = document.getElementById('status');
+      
+      if (brokenRefs.length === 0) {
+        updateStatus('✅ No broken variable references found!', 'success');
+        resultsContainer.style.display = 'none';
+        return;
+      }
+
+      updateStatus(`❌ Found ${brokenRefs.length} broken variable reference(s)`, 'error');
+      
+      // Group by type
+      const byType = {
+        primitive: brokenRefs.filter(ref => ref.referenceType === 'primitive'),
+        semantic: brokenRefs.filter(ref => ref.referenceType === 'semantic'),
+        component: brokenRefs.filter(ref => ref.referenceType === 'component')
+      };
+
+      resultsContainer.innerHTML = '';
+      
+      // Create sections for each type
+      const sections = [
+        { type: 'primitive', title: 'Primitive Variables', refs: byType.primitive },
+        { type: 'semantic', title: 'Semantic Variables', refs: byType.semantic },
+        { type: 'component', title: 'Component Variables', refs: byType.component }
+      ];
+
+      sections.forEach(({ type, title, refs }) => {
+        if (refs.length > 0 || type === 'primitive') { // Always show primitive section
+          const section = createSection(type, title, refs);
+          resultsContainer.appendChild(section);
+        }
+      });
+
+      resultsContainer.style.display = 'block';
+    }
+
+    function retryScan() {
+      if (isScanning) return;
+      
+      isScanning = true;
+      const retryButton = document.getElementById('retryButton');
+      retryButton.disabled = true;
+      retryButton.textContent = 'Scanning...';
+      
+      updateStatus('Scanning variables...', 'loading');
+      document.getElementById('results').style.display = 'none';
+      
+      // Send message to plugin to retry
+      parent.postMessage({ pluginMessage: { type: 'retry-scan' } }, '*');
+    }
+
+    // Listen for messages from the plugin
+    window.onmessage = async (event) => {
+      const message = event.data.pluginMessage;
+      
+      if (!message) return;
+      
+      switch (message.type) {
+        case 'scan-complete':
+          isScanning = false;
+          const retryButton = document.getElementById('retryButton');
+          retryButton.disabled = false;
+          retryButton.textContent = 'Scan Again';
+          displayResults(message.brokenRefs);
+          break;
+          
+        case 'scan-error':
+          isScanning = false;
+          const retryBtn = document.getElementById('retryButton');
+          retryBtn.disabled = false;
+          retryBtn.textContent = 'Scan Again';
+          updateStatus(`❌ Error: ${message.error}`, 'error');
+          break;
+      }
+    };
+
+    // Initial scan
+    parent.postMessage({ pluginMessage: { type: 'start-scan' } }, '*');
+  </script>
+</body>
+</html> 
