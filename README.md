@@ -60,6 +60,11 @@ Unlike other plugins that require specific naming conventions, this plugin works
 
 This plugin is built with TypeScript and follows Figma's plugin development best practices.
 
+**Development Tools:**
+- TypeScript for type safety
+- Cursor AI for development assistance
+- ESLint for code quality
+
 ### Setup
 
 1. Install dependencies: `npm install`
