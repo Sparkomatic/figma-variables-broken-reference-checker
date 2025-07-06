@@ -102,16 +102,12 @@
       font-weight: 500;
     }
 
-    .section-count.primitive {
-      background: #007bff;
+    .section-count.has-errors {
+      background: #dc3545;
     }
 
-    .section-count.semantic {
+    .section-count.no-errors {
       background: #28a745;
-    }
-
-    .section-count.component {
-      background: #fd7e14;
     }
 
     .section-content {
@@ -247,16 +243,16 @@
         : message;
     }
 
-    function createSection(type, title, references) {
+    function createSection(collectionName, references) {
       const section = document.createElement('div');
       section.className = 'section';
       
       const count = references.length;
-      const countClass = count > 0 ? type : 'empty';
+      const countClass = count > 0 ? 'has-errors' : 'no-errors';
       
       section.innerHTML = `
         <div class="section-header">
-          <span>${title}</span>
+          <span>${escapeHtml(collectionName)}</span>
           <span class="section-count ${countClass}">${count}</span>
         </div>
         <div class="section-content">
@@ -295,27 +291,22 @@
 
       updateStatus(`❌ Found ${brokenRefs.length} broken variable reference(s)`, 'error');
       
-      // Group by type
-      const byType = {
-        primitive: brokenRefs.filter(ref => ref.referenceType === 'primitive'),
-        semantic: brokenRefs.filter(ref => ref.referenceType === 'semantic'),
-        component: brokenRefs.filter(ref => ref.referenceType === 'component')
-      };
+      // Group by collection
+      const byCollection = {};
+      brokenRefs.forEach(ref => {
+        const collectionName = ref.collectionName;
+        if (!byCollection[collectionName]) {
+          byCollection[collectionName] = [];
+        }
+        byCollection[collectionName].push(ref);
+      });
 
       resultsContainer.innerHTML = '';
       
-      // Create sections for each type
-      const sections = [
-        { type: 'primitive', title: 'Primitive Variables', refs: byType.primitive },
-        { type: 'semantic', title: 'Semantic Variables', refs: byType.semantic },
-        { type: 'component', title: 'Component Variables', refs: byType.component }
-      ];
-
-      sections.forEach(({ type, title, refs }) => {
-        if (refs.length > 0 || type === 'primitive') { // Always show primitive section
-          const section = createSection(type, title, refs);
-          resultsContainer.appendChild(section);
-        }
+      // Create sections for each collection
+      Object.keys(byCollection).sort().forEach(collectionName => {
+        const section = createSection(collectionName, byCollection[collectionName]);
+        resultsContainer.appendChild(section);
       });
 
       resultsContainer.style.display = 'block';

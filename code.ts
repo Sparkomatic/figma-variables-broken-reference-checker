@@ -1,7 +1,7 @@
 /// <reference types="@figma/plugin-typings" />
 
 // Figma Variables Broken Reference Checker
-// This plugin checks for broken variable references across primitive, semantic, and component variables
+// This plugin checks for broken variable references across any variable collection structure
 
 interface BrokenReference {
   variableName: string;
@@ -9,7 +9,7 @@ interface BrokenReference {
   brokenReference: string;
   referencedVariableName: string;
   themeName: string;
-  referenceType: 'primitive' | 'semantic' | 'component';
+  collectionName: string;
   error: string;
 }
 
@@ -30,31 +30,6 @@ async function getAllVariables(): Promise<Variable[]> {
   }
   
   return variables;
-}
-
-// Categorize variables by type (primitive, semantic, component)
-function categorizeVariables(variables: Variable[]): {
-  primitives: Variable[];
-  semantics: Variable[];
-  components: Variable[];
-} {
-  const primitives: Variable[] = [];
-  const semantics: Variable[] = [];
-  const components: Variable[] = [];
-  
-  for (const variable of variables) {
-    const name = variable.name.toLowerCase();
-    
-    if (name.startsWith('primitive')) {
-      primitives.push(variable);
-    } else if (name.startsWith('semantic')) {
-      semantics.push(variable);
-    } else if (name.startsWith('component')) {
-      components.push(variable);
-    }
-  }
-  
-  return { primitives, semantics, components };
 }
 
 // Create a map of all variable IDs for quick lookup
@@ -112,7 +87,7 @@ async function checkVariableReference(
           brokenReference: value.id,
           referencedVariableName,
           themeName: modeName,
-          referenceType: getVariableType(variable.name),
+          collectionName: collection ? collection.name : 'Unknown Collection',
           error: `Variable references non-existent variable "${referencedVariableName}" (ID: ${value.id}) in theme "${modeName}"`
         });
       }
@@ -122,41 +97,17 @@ async function checkVariableReference(
   return brokenRefs;
 }
 
-// Get the type of variable based on its name
-function getVariableType(name: string): 'primitive' | 'semantic' | 'component' {
-  const lowerName = name.toLowerCase();
-  
-  if (lowerName.startsWith('primitive')) {
-    return 'primitive';
-  } else if (lowerName.startsWith('semantic')) {
-    return 'semantic';
-  } else if (lowerName.startsWith('component')) {
-    return 'component';
-  }
-  
-  // Default based on common patterns
-  if (lowerName.indexOf('component') !== -1) {
-    return 'component';
-  } else if (lowerName.indexOf('semantic') !== -1) {
-    return 'semantic';
-  } else {
-    return 'primitive';
-  }
-}
-
 // Main function to check all variables
 async function checkAllVariables(): Promise<BrokenReference[]> {
   const allVariables = await getAllVariables();
-  const { primitives, semantics, components } = categorizeVariables(allVariables);
   const variableIdMap = createVariableIdMap(allVariables);
+  const collections = await figma.variables.getLocalVariableCollectionsAsync();
   
   const allBrokenRefs: BrokenReference[] = [];
   
-  // Check all variable types
-  const allVarTypes = [...primitives, ...semantics, ...components];
-  
-  for (const variable of allVarTypes) {
-    const brokenRefs = await checkVariableReference(variable, variableIdMap, await figma.variables.getLocalVariableCollectionsAsync());
+  // Check all variables regardless of their naming convention
+  for (const variable of allVariables) {
+    const brokenRefs = await checkVariableReference(variable, variableIdMap, collections);
     allBrokenRefs.push(...brokenRefs);
   }
   
