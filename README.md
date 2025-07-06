@@ -46,6 +46,50 @@ Unlike other plugins that require specific naming conventions, this plugin works
 - Any theme/mode structure
 - Any variable reference depth
 
+## Plugin Distribution Management
+
+This codebase manages both organization and community versions of the plugin using separate manifest files:
+
+### Manifest Files
+
+- **`manifest.json`** - Currently active manifest (switches between versions)
+- **`manifest.organization.json`** - Organization version with original ID
+- **`manifest.community.json`** - Community version with unique ID
+
+### Switching Between Versions
+
+**To use the Community version:**
+```bash
+cp manifest.community.json manifest.json
+```
+
+**To use the Organization version:**
+```bash
+cp manifest.organization.json manifest.json
+```
+
+### Version Differences
+
+| Version | Name | ID | Purpose |
+|---------|------|----|---------|
+| Organization | "Broken Variable Reference Checker" | 1522943800002296763 | Internal company use |
+| Community | "Broken Variable Reference Checker (Community)" | 1522943800999999999 | Public Figma Community |
+
+### Workflow
+
+1. **Development**: Make changes to the code (both versions share the same codebase)
+2. **Testing**: Switch to the appropriate manifest and test in Figma
+3. **Publishing**: 
+   - Organization: Use `manifest.organization.json` for internal distribution
+   - Community: Use `manifest.community.json` for Figma Community publishing
+
+### Why This Approach?
+
+- **Single Codebase**: Both versions share the same functionality and updates
+- **Unique IDs**: Prevents conflicts between organization and community installations
+- **Clear Naming**: Users can distinguish between versions in their plugin manager
+- **Easy Switching**: Simple file copy operations to switch between versions
+
 ## Development
 
 This plugin is built with TypeScript and follows Figma's plugin development best practices.

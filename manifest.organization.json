@@ -1,6 +1,6 @@
 {
-  "name": "Broken Variable Reference Checker (Community)",
-  "id": "1522943800999999999",
+  "name": "Broken Variable Reference Checker",
+  "id": "1522943800002296763",
   "api": "1.0.0",
   "main": "code.js",
   "ui": "ui.html",
