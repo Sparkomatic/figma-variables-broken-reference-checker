@@ -1,5 +1,5 @@
 {
-  "name": "figma-variables-broken-reference-checker",
+  "name": "Broken Variable Reference Checker",
   "id": "1522943800002296763",
   "api": "1.0.0",
   "main": "code.js",
